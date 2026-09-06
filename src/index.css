@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #2F283B;
+  --color-brand-light: #453b57;
+  --color-coral: #E55A53;
+  --color-gold: #F2B63D;
+
+  --font-heading: "Sora", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+}
