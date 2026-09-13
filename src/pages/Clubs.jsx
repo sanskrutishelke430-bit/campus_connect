@@ -1,8 +1,24 @@
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import ClubCard from '../components/ClubCard.jsx'
-import { clubs } from '../data/clubs.js'
 
 function Clubs() {
+  const [clubs, setClubs] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/clubs`)
+      .then((res) => res.json())
+      .then((data) => {
+        setClubs(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch clubs:', err)
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-brand">
@@ -18,8 +34,9 @@ function Clubs() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 px-6 py-10 sm:grid-cols-2 md:px-12 lg:grid-cols-3 lg:px-16">
-        {clubs.map((club, index) => (
-          <ClubCard key={club.id} club={club} index={index} />
+        {loading && <p className="text-gray-400">Loading clubs...</p>}
+        {!loading && clubs.map((club, index) => (
+          <ClubCard key={club._id} club={{ ...club, id: club._id }} index={index} />
         ))}
       </div>
     </div>

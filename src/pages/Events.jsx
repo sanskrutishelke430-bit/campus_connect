@@ -1,11 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import EventCard from '../components/EventCard.jsx'
-import { events, categories } from '../data/events.js'
+import { categories } from '../data/events.js'
 
 function Events() {
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('All')
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/events`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEvents(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch events:', err)
+        setLoading(false)
+      })
+  }, [])
 
   const filteredEvents = events.filter((event) => {
     const matchesCategory = activeCategory === 'All' || event.category === activeCategory
@@ -28,7 +43,6 @@ function Events() {
       </div>
 
       <div className="px-6 py-8 md:px-12 lg:px-16">
-        {/* Search */}
         <input
           type="text"
           placeholder="Search events..."
@@ -37,7 +51,6 @@ function Events() {
           className="mb-4 w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-coral"
         />
 
-        {/* Category Filters */}
         <div className="mb-8 flex flex-wrap gap-2">
           {categories.map((cat) => (
             <button
@@ -54,12 +67,12 @@ function Events() {
           ))}
         </div>
 
-        {/* Event List */}
         <div className="flex flex-col gap-4">
-          {filteredEvents.map((event, index) => (
-            <EventCard key={event.id} event={event} index={index} />
+          {loading && <p className="text-gray-400">Loading events...</p>}
+          {!loading && filteredEvents.map((event, index) => (
+            <EventCard key={event._id} event={{ ...event, id: event._id }} index={index} />
           ))}
-          {filteredEvents.length === 0 && (
+          {!loading && filteredEvents.length === 0 && (
             <p className="text-gray-400">No events match your search.</p>
           )}
         </div>

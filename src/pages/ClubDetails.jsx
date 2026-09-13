@@ -1,13 +1,47 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Users, Award } from 'lucide-react'
 import Navbar from '../components/Navbar.jsx'
 import EventCard from '../components/EventCard.jsx'
-import { clubs } from '../data/clubs.js'
-import { events } from '../data/events.js'
 
 function ClubDetails() {
   const { id } = useParams()
-  const club = clubs.find((c) => c.id === id)
+  const [club, setClub] = useState(null)
+  const [clubEvents, setClubEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/clubs`)
+      .then((res) => res.json())
+      .then((allClubs) => {
+        const found = allClubs.find((c) => c._id === id)
+        setClub(found)
+
+        if (found) {
+          fetch(`${import.meta.env.VITE_API_URL}/events`)
+            .then((res) => res.json())
+            .then((allEvents) => {
+              setClubEvents(allEvents.filter((e) => e.clubId === found._id))
+              setLoading(false)
+            })
+        } else {
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch club:', err)
+        setLoading(false)
+      })
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <p className="p-8 text-gray-500">Loading club...</p>
+      </div>
+    )
+  }
 
   if (!club) {
     return (
@@ -17,8 +51,6 @@ function ClubDetails() {
       </div>
     )
   }
-
-  const clubEvents = events.filter((e) => e.clubId === club.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +81,6 @@ function ClubDetails() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 px-6 py-10 md:grid-cols-3 md:px-12 lg:px-16">
-        {/* Main Content */}
         <div className="md:col-span-2">
           <h2 className="font-heading text-lg font-bold text-brand">About</h2>
           <p className="mt-2 leading-relaxed text-gray-600">{club.shortDescription}</p>
@@ -58,7 +89,7 @@ function ClubDetails() {
           {clubEvents.length > 0 ? (
             <div className="flex flex-col gap-4">
               {clubEvents.map((e, i) => (
-                <EventCard key={e.id} event={e} index={i} />
+                <EventCard key={e._id} event={{ ...e, id: e._id }} index={i} />
               ))}
             </div>
           ) : (
@@ -66,7 +97,6 @@ function ClubDetails() {
           )}
         </div>
 
-        {/* Sidebar */}
         <div className="flex h-fit flex-col gap-4">
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-500">
